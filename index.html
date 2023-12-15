@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pack Your Bag App</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    #app {
+      max-width: 600px;
+      margin: 50px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #itemList {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #ffffff;
+      border: 1px solid #d1d1d1;
+      border-radius: 5px;
+    }
+
+    .item label {
+      margin-bottom: 0;
+      flex-grow: 1;
+    }
+
+    .item.checked {
+      background-color: #d3f2e4;
+      text-decoration: line-through;
+    }
+
+    .btn-primary {
+      background-color: #3498db;
+      border-color: #3498db;
+    }
+
+    .btn-primary:hover {
+      background-color: #2980b9;
+      border-color: #2980b9;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      border-color: #e74c3c;
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+      border-color: #c0392b;
+    }
+
+    #departureInput {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <h1 class="text-center" style="color: #3498db;">Pack Your Bag App</h1>
+
+    <div class="form-group">
+      <label for="addItemInput">Add Item:</label>
+      <div class="input-group">
+        <input type="text" class="form-control" id="addItemInput" placeholder="Item name">
+        <input type="number" class="form-control" id="quantityInput" placeholder="Quantity" min="1" value="1">
+        <div class="input-group-append">
+          <button class="btn btn-primary" onclick="addItem()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="itemSetDropdown">Add Default Item Set:</label>
+      <select class="form-control" id="itemSetDropdown" onchange="addDefaultItemSet()">
+        <option value="">Select Item Set</option>
+        <option value="clothes,toothbrush,shoes,wallet,phone charger,sunscreen,medications,snacks,bottle">Travel Essentials</option>
+        <!-- Add more predefined item sets as needed -->
+      </select>
+    </div>
+
+    <ul id="itemList" class="mt-4"></ul>
+
+    <div class="form-group">
+      <label for="departureInput">Departure Date:</label>
+      <input type="datetime-local" class="form-control" id="departureInput" onchange="setReminder()">
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and Popper.js (required for Bootstrap components) -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+  <script>
+    let items = [];
+    let initialLoad = true;
+
+    function addItem() {
+      const addItemInput = document.getElementById('addItemInput');
+      const quantityInput = document.getElementById('quantityInput');
+      const newItem = addItemInput.value.trim();
+      const quantity = parseInt(quantityInput.value);
+
+      if (newItem !== '') {
+        items.push({ label: newItem, quantity: quantity, packed: false });
+        addItemInput.value = '';
+        quantityInput.value = 1;
+        updateItemList();
+      }
+    }
+
+    function togglePacked(index) {
+      items[index].packed = !items[index].packed;
+      updateItemList();
+    }
+
+    function deleteItem(index) {
+      if (items[index].packed) {
+        items.splice(index, 1);
+        updateItemList();
+      }
+    }
+
+    function updateItemList() {
+      const itemList = document.getElementById('itemList');
+      itemList.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const listItem = document.createElement('li');
+        listItem.className = `item ${item.packed ? 'checked' : ''}`;
+        listItem.innerHTML = `
+          <label class="form-check-label d-flex align-items-center">
+            <input type="checkbox" class="form-check-input" ${item.packed ? 'checked' : ''} onclick="togglePacked(${index})">
+            <span class="mr-2">${index + 1}.</span>
+            <span class="flex-grow-1">${item.label} (Quantity: ${item.quantity})</span>
+          </label>
+          <button class="btn btn-danger" onclick="deleteItem(${index})" ${!item.packed ? 'disabled' : ''}>Delete</button>
+        `;
+        itemList.appendChild(listItem);
+      });
+    }
+
+    function setReminder() {
+      const departureInput = document.getElementById('departureInput');
+      const departureTime = new Date(departureInput.value).getTime();
+      const currentTime = new Date().getTime();
+      const oneHourInMillis = 60 * 60 * 1000;
+
+      const timeDifference = departureTime - currentTime - oneHourInMillis;
+
+      if (!initialLoad && timeDifference > 0) {
+        setTimeout(() => {
+          alert('One hour until departure!');
+        }, timeDifference);
+      }
+
+      initialLoad = false;
+    }
+    
+    function addDefaultItemSet() {
+      const itemSetDropdown = document.getElementById('itemSetDropdown');
+      const selectedSet = itemSetDropdown.value;
+
+      if (selectedSet) {
+        const itemsToAdd = selectedSet.split(',');
+        itemsToAdd.forEach(item => {
+          items.push({ label: item.trim(), quantity: 1, packed: false });
+        });
+
+        updateItemList();
+        itemSetDropdown.value = ''; // Reset the dropdown after adding the default item set
+      }
+    }
+
+    // Set reminder when the page is loaded (for testing purposes)
+    setReminder();
+  </script>
+
+</body>
+</html>
