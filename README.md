@@ -1,4 +1,3 @@
 # PackYourBag
-https://malviyaji.github.io/PackYourBag/
-\n
+https://malviyaji.github.io/PackYourBag  
 created for college group project
